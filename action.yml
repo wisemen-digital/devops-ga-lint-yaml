@@ -1,0 +1,92 @@
+---
+name: Lint YAML
+description: Lint YAML files at the given paths (or the whole folder)
+inputs:
+  paths:
+    description: Paths to lint
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Apply config if needed
+      shell: bash
+      run: |
+        if [ ! -f ".yamllint" ]; then
+          echo "Applying default configuration…"
+          echo "${{ env.default-yaml-lint-config }}" > .yamllint
+        fi
+      env:
+        default-yaml-lint-config: |
+          ---
+          ignore: |
+          rules:
+            braces:
+              level: error
+              min-spaces-inside: 0
+              max-spaces-inside: 1
+              min-spaces-inside-empty: -1
+              max-spaces-inside-empty: -1
+            brackets:
+              level: error
+              min-spaces-inside: 0
+              max-spaces-inside: 0
+              min-spaces-inside-empty: -1
+              max-spaces-inside-empty: -1
+            colons:
+              level: error
+              max-spaces-before: 0
+              max-spaces-after: 1
+            commas:
+              level: error
+              max-spaces-before: 0
+              min-spaces-after: 1
+              max-spaces-after: 1
+            comments:
+              level: error
+              require-starting-space: true
+              min-spaces-from-content: 2
+            comments-indentation:
+              level: error
+            document-end:
+              level: error
+              present: false
+            document-start:
+              level: error
+              present: true
+            empty-lines:
+              level: error
+              max: 1
+              max-start: 0
+              max-end: 1
+            hyphens:
+              level: error
+              max-spaces-after: 1
+            indentation:
+              level: error
+              spaces: 2
+              indent-sequences: true
+              check-multi-line-strings: false
+            key-duplicates:
+              level: error
+            line-length:
+              level: warning
+              max: 100
+              allow-non-breakable-words: true
+              allow-non-breakable-inline-mappings: true
+            new-line-at-end-of-file:
+              level: error
+            new-lines:
+              level: error
+              type: unix
+            trailing-spaces:
+              level: error
+            truthy:
+              level: error
+              ignore: |
+                .github/workflows/*
+    - name: Run yamllint
+      shell: bash
+      run: yamllint ${{ inputs.paths || '.' }}
